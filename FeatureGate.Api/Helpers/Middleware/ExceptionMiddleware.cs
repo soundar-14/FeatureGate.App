@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using FluentValidation;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 
 namespace FeatureGate.Api.Helpers.Middleware
@@ -38,14 +39,14 @@ namespace FeatureGate.Api.Helpers.Middleware
             {
                 KeyNotFoundException => HttpStatusCode.NotFound,
                 InvalidOperationException => HttpStatusCode.Conflict,
-                ArgumentException => HttpStatusCode.BadRequest,
+                ArgumentException or ValidationException => HttpStatusCode.BadRequest,
                 _ => HttpStatusCode.InternalServerError
             };
 
             var response = new
             {
                 exception.Message,
-                StatusCode = (int)statusCode
+                StatusCode = statusCode
             };
 
             context.Response.ContentType = "application/json";

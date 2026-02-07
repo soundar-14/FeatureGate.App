@@ -8,6 +8,7 @@ using FeatureGate.Application.Rules.Engines;
 using FeatureGate.Application.Services.Features;
 using FeatureGate.Domain.Entities;
 using FeatureGate.Domain.Enums;
+using FluentValidation;
 using Moq;
 using Xunit;
 
@@ -17,6 +18,7 @@ namespace FeatureGate.Tests.Services.Features
     {
         private readonly Mock<IFeatureRepository> _featureRepoMock;
         private readonly Mock<IFeatureOverrideRepository> _overrideRepoMock;
+        private readonly Mock<IValidator<FeatureEvaluationRequestDto>> _validator;
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<ICacheService> _cacheMock;
 
@@ -26,6 +28,7 @@ namespace FeatureGate.Tests.Services.Features
         {
             _featureRepoMock = new Mock<IFeatureRepository>();
             _overrideRepoMock = new Mock<IFeatureOverrideRepository>();
+            _validator = new Mock<IValidator<FeatureEvaluationRequestDto>>();
             _mapperMock = new Mock<IMapper>();
             _cacheMock = new Mock<ICacheService>();
 
@@ -54,6 +57,7 @@ namespace FeatureGate.Tests.Services.Features
                 _featureRepoMock.Object,
                 _overrideRepoMock.Object,
                 ruleEngine,
+                _validator.Object,
                 _mapperMock.Object,
                 _cacheMock.Object);
         }

@@ -1,10 +1,17 @@
 ﻿
+using AutoMapper;
+using FeatureGate.Application.DTOs.FeatureOverrides;
+using FeatureGate.Application.Helpers.Constants;
+using FeatureGate.Application.Interfaces.Repositories;
+using FeatureGate.Application.Interfaces.Services.Cache;
+using FeatureGate.Application.Services.Features;
 using FeatureGate.Domain.Entities;
 using FeatureGate.Domain.Enums;
 using FeatureGate.Infrastructure.Contexts;
 using FeatureGate.Infrastructure.Repositories;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace FeatureGate.Infrastructure.Tests.Repositories;
 
@@ -18,6 +25,105 @@ public class FeatureOverrideRepositoryTests
 
         return new FeatureGateDbContext(options);
     }
+
+    [Fact]
+    public async Task CreateAsync_Throws_WhenUserOverrideAlreadyExists()
+    {
+        var repo = new Mock<IFeatureOverrideRepository>();
+        var cache = new Mock<ICacheService>();
+        var mapper = new Mock<IMapper>();
+
+        repo.Setup(r => r.UserExistsAsync(It.IsAny<Guid>(), "user1"))
+            .ReturnsAsync(true);
+
+        var service = new FeatureOverrideService(
+            repo.Object, cache.Object, mapper.Object);
+
+        var dto = new FeatureOverrideDto
+        {
+            FeatureId = Guid.NewGuid(),
+            TargetType = OverrideType.User,
+            TargetId = "user1"
+        };
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => service.CreateAsync(dto));
+    }
+
+    [Fact]
+    public async Task CreateAsync_Throws_WhenGroupOverrideAlreadyExists()
+    {
+        var repo = new Mock<IFeatureOverrideRepository>();
+        var cache = new Mock<ICacheService>();
+        var mapper = new Mock<IMapper>();
+
+        repo.Setup(r => r.GroupExistsAsync(It.IsAny<Guid>(), "group1"))
+            .ReturnsAsync(true);
+
+        var service = new FeatureOverrideService(
+            repo.Object, cache.Object, mapper.Object);
+
+        var dto = new FeatureOverrideDto
+        {
+            FeatureId = Guid.NewGuid(),
+            TargetType = OverrideType.Group,
+            TargetId = "group1"
+        };
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => service.CreateAsync(dto));
+    }
+
+    [Fact]
+    public async Task CreateAsync_Throws_WhenRegionOverrideAlreadyExists()
+    {
+        var repo = new Mock<IFeatureOverrideRepository>();
+        var cache = new Mock<ICacheService>();
+        var mapper = new Mock<IMapper>();
+
+        repo.Setup(r => r.RegionExistsAsync(It.IsAny<Guid>(), "IN"))
+            .ReturnsAsync(true);
+
+        var service = new FeatureOverrideService(
+            repo.Object, cache.Object, mapper.Object);
+
+        var dto = new FeatureOverrideDto
+        {
+            FeatureId = Guid.NewGuid(),
+            TargetType = OverrideType.Region,
+            TargetId = "IN"
+        };
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => service.CreateAsync(dto));
+    }
+
+    [Fact]
+    public async Task CreateAsync_DoesNotThrow_ForUnknownTargetType()
+    {
+        var repo = new Mock<IFeatureOverrideRepository>();
+        var cache = new Mock<ICacheService>();
+        var mapper = new Mock<IMapper>();
+
+        mapper.Setup(m => m.Map<FeatureOverride>(It.IsAny<FeatureOverrideDto>()))
+              .Returns(new FeatureOverride());
+
+        var service = new FeatureOverrideService(
+            repo.Object, cache.Object, mapper.Object);
+
+        var dto = new FeatureOverrideDto
+        {
+            FeatureId = Guid.NewGuid(),
+            TargetType = (OverrideType)999, // hits default
+            TargetId = "x"
+        };
+
+        await service.CreateAsync(dto);
+
+        cache.Verify(c => c.RemoveByPrefixAsync(CacheKeys.FeatureAllPrefix),
+            Times.Once);
+    }
+
 
     [Fact]
     public async Task AddAsync_SaveChangesAsync_GetByIdAsync_ShouldPersistOverride()
@@ -179,6 +285,80 @@ public class FeatureOverrideRepositoryTests
         // Assert
         result.Should().HaveCount(2);
         result.All(o => o.FeatureId == featureId1).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task UserExistsAsync_ReturnsTrue_WhenUserOverrideExists()
+    {
+        var db = CreateDbContext();
+        var repo = new FeatureOverrideRepository(db);
+
+        var featureId = Guid.NewGuid();
+
+        db.FeatureOverrides.Add(new FeatureOverride
+        {
+            FeatureId = featureId,
+            TargetType = OverrideType.User,
+            TargetId = "user-123"
+        });
+        await db.SaveChangesAsync();
+
+        var result = await repo.UserExistsAsync(featureId, "user-123");
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task UserExistsAsync_ReturnsFalse_WhenUserOverrideDoesNotExist()
+    {
+        var db = CreateDbContext();
+        var repo = new FeatureOverrideRepository(db);
+
+        var result = await repo.UserExistsAsync(Guid.NewGuid(), "user-123");
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task GroupExistsAsync_ReturnsTrue_WhenGroupOverrideExists()
+    {
+        var db = CreateDbContext();
+        var repo = new FeatureOverrideRepository(db);
+
+        var featureId = Guid.NewGuid();
+
+        db.FeatureOverrides.Add(new FeatureOverride
+        {
+            FeatureId = featureId,
+            TargetType = OverrideType.Group,
+            TargetId = "group-1"
+        });
+        await db.SaveChangesAsync();
+
+        var result = await repo.GroupExistsAsync(featureId, "group-1");
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task RegionExistsAsync_ReturnsTrue_WhenRegionOverrideExists()
+    {
+        var db = CreateDbContext();
+        var repo = new FeatureOverrideRepository(db);
+
+        var featureId = Guid.NewGuid();
+
+        db.FeatureOverrides.Add(new FeatureOverride
+        {
+            FeatureId = featureId,
+            TargetType = OverrideType.Region,
+            TargetId = "IN"
+        });
+        await db.SaveChangesAsync();
+
+        var result = await repo.RegionExistsAsync(featureId, "IN");
+
+        Assert.True(result);
     }
 }
 

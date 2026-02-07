@@ -27,11 +27,11 @@ namespace FeatureGate.Api.Controllers
             => Ok(await _featureService.GetAllAsync());
 
         [HttpPost]
-        public async Task<IActionResult> Create(FeatureDto dto)
+        public async Task<IActionResult> Create([FromBody] FeatureDto dto)
             => Ok(await _featureService.CreateAsync(dto));
 
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> Update(Guid id, FeatureDto dto)
+        public async Task<IActionResult> Update(Guid id, [FromBody] FeatureDto dto)
             => Ok(await _featureService.UpdateAsync(id, dto));
 
         [HttpDelete("{id:guid}")]

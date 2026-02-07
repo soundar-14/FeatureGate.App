@@ -28,11 +28,11 @@ namespace FeatureGate.Api.Controllers
             => Ok(await _overrideService.GetAllAsync());
 
         [HttpPost]
-        public async Task<IActionResult> Create(FeatureOverrideDto dto)
+        public async Task<IActionResult> Create([FromBody] FeatureOverrideDto dto)
             => Ok(await _overrideService.CreateAsync(dto));
 
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> Update(Guid id, FeatureOverrideDto dto)
+        public async Task<IActionResult> Update(Guid id, [FromBody] FeatureOverrideDto dto)
             => Ok(await _overrideService.UpdateAsync(id, dto));
 
         [HttpDelete("{id:guid}")]

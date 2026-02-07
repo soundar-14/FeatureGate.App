@@ -5,6 +5,7 @@ using FeatureGate.Application.Interfaces.Repositories;
 using FeatureGate.Application.Interfaces.Services.Cache;
 using FeatureGate.Application.Interfaces.Services.Features;
 using FeatureGate.Application.Rules.Engines;
+using FluentValidation;
 
 namespace FeatureGate.Application.Services.Features
 {
@@ -15,11 +16,13 @@ namespace FeatureGate.Application.Services.Features
         private readonly FeatureRuleEngine _ruleEngine;
         private readonly IMapper _mapper;
         private readonly ICacheService _cacheService;
+        private readonly IValidator<FeatureEvaluationRequestDto> _validator;
 
         public FeatureEvaluationService(
             IFeatureRepository featureRepo,
             IFeatureOverrideRepository overrideRepo,
             FeatureRuleEngine ruleEngine,
+            IValidator<FeatureEvaluationRequestDto> validator,
             IMapper mapper,
             ICacheService cacheService)
         {
@@ -28,11 +31,13 @@ namespace FeatureGate.Application.Services.Features
             _ruleEngine = ruleEngine;
             _mapper = mapper;
             _cacheService = cacheService;
+            _validator = validator;
         }
 
         public async Task<FeatureEvaluationResultDto> EvaluateAsync(
             FeatureEvaluationRequestDto request)
         {
+            await _validator.ValidateAndThrowAsync(request);
             var featureKey = request.FeatureKey.ToLowerInvariant();
 
             var cacheKey =

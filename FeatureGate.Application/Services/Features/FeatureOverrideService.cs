@@ -6,6 +6,7 @@ using FeatureGate.Application.Interfaces.Services.Cache;
 using FeatureGate.Application.Interfaces.Services.Features;
 using FeatureGate.Application.Services.Common;
 using FeatureGate.Domain.Entities;
+using FeatureGate.Domain.Enums;
 
 namespace FeatureGate.Application.Services.Features
 {
@@ -13,6 +14,7 @@ namespace FeatureGate.Application.Services.Features
     : CrudService<FeatureOverride, FeatureOverrideDto>, IFeatureOverrideService
     {
         private readonly ICacheService _cacheService;
+        private readonly IFeatureOverrideRepository _repository;
         public FeatureOverrideService(
             IFeatureOverrideRepository repository,
             ICacheService cacheService,
@@ -20,12 +22,32 @@ namespace FeatureGate.Application.Services.Features
             : base(repository, mapper)
         {
             _cacheService = cacheService;
+            _repository = repository;
+
         }
 
         public override async Task<FeatureOverrideDto> CreateAsync(
             FeatureOverrideDto dto)
         {
             Validate(dto);
+
+            var exists = dto.TargetType switch
+            {
+                OverrideType.User =>
+                    await _repository.UserExistsAsync(dto.FeatureId, dto.TargetId),
+
+                OverrideType.Group =>
+                    await _repository.GroupExistsAsync(dto.FeatureId, dto.TargetId),
+
+                OverrideType.Region =>
+                    await _repository.RegionExistsAsync(dto.FeatureId, dto.TargetId),
+
+                _ => false
+            };
+
+            if(exists)
+                throw new ArgumentException($"TargetId '{dto.TargetId}' already exist for Feature '{dto.FeatureId}' and TargetType '{dto.TargetType}'");
+
             var result = await base.CreateAsync(dto);
 
             // Overrides affect evaluation → clear all feature caches

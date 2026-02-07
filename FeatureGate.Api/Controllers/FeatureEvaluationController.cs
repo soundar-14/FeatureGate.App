@@ -18,7 +18,7 @@ namespace FeatureGate.Api.Controllers
 
         [HttpPost]
         public async Task<IActionResult> Evaluate(
-            FeatureEvaluationRequestDto request)
+            [FromBody] FeatureEvaluationRequestDto request)
         {
             var result = await _evaluationService.EvaluateAsync(request);
             return Ok(result);

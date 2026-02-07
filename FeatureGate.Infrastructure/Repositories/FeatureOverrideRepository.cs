@@ -22,5 +22,20 @@ namespace FeatureGate.Infrastructure.Repositories
                 .Where(o => o.FeatureId == featureId)
                 .ToListAsync();
         }
+
+        public async Task<bool> UserExistsAsync(Guid featureId, string userId)
+        {
+            return await _db.FeatureOverrides.AnyAsync(f => f.FeatureId == featureId && f.TargetType == Domain.Enums.OverrideType.User &&  f.TargetId == userId);
+        }
+
+        public async Task<bool> GroupExistsAsync(Guid featureId, string groupId)
+        {
+            return await _db.FeatureOverrides.AnyAsync(f => f.FeatureId == featureId && f.TargetType == Domain.Enums.OverrideType.Group && f.TargetId == groupId);
+        }
+
+        public async Task<bool> RegionExistsAsync(Guid featureId, string regionCode)
+        {
+            return await _db.FeatureOverrides.AnyAsync(f => f.FeatureId == featureId && f.TargetType == Domain.Enums.OverrideType.Region && f.TargetId == regionCode);
+        }
     }
 }
