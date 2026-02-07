@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="FeatureGate.Api/FeatureGate.Api.csproj" />
+    <Project Path="FeatureGate.Application/FeatureGate.Application.csproj" />
+    <Project Path="FeatureGate.Domain/FeatureGate.Domain.csproj" />
+    <Project Path="FeatureGate.Infrastructure/FeatureGate.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="FeatureGate.Api.Tests/FeatureGate.Api.Tests.csproj" />
+    <Project Path="FeatureGate.Application.Tests/FeatureGate.Application.Tests.csproj" />
+    <Project Path="FeatureGate.Infrastructure.Tests/FeatureGate.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>
