@@ -132,3 +132,7 @@ Testing stack:
 -   **Moq** -- Mocking dependencies
 -   **FluentAssertions** -- Readable assertions
 
+### Test Coverages
+
+![Sonarquobe Result 1](https://raw.githubusercontent.com/soundar-14/FeatureGate.App/refs/heads/master/Coverage_snapshot1.png)
+![Sonarquobe Result 1](https://raw.githubusercontent.com/soundar-14/FeatureGate.App/refs/heads/master/Coverage_snapshot2.png)
